@@ -1,0 +1,25 @@
+{
+  "name": "car-sharing-app-softwaredesign",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "tsc && node dist/script.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MaxManthey/car-sharing-app-softwaredesign.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MaxManthey/car-sharing-app-softwaredesign/issues"
+  },
+  "homepage": "https://github.com/MaxManthey/car-sharing-app-softwaredesign#readme",
+  "devDependencies": {
+    "eslint": "^8.8.0",
+    "typescript": "^4.5.5"
+  }
+}
