@@ -1,81 +1,25 @@
+import { User } from "./User";
+import { Database } from "./Database";
 import prompts from "prompts";
 
 export class Controll {
-    public async login(): Promise<void> {
-        console.log('Please login to your CarShare account');
-        const questions = [
-            {
-              type: 'text',
-              name: 'username',
-              message: 'What is your username?'
-            },
-            {
-              type: 'password',
-              name: 'password',
-              message: 'What is your password?'
-            }
-        ];
-        const response = await prompts(questions);
-        const providedUsername = response.username;
-        const providedPassword = response.password;
-        console.log(providedUsername, providedPassword)
-
-        //TODO check if user exists and password matches
-        //If not ask to repeat or leave app
+    private user: User;
+    
+    constructor(user: User) {
+        this.user = user;
     }
 
-    public async register(): Promise<void> {
-        console.log('Let\'s register a new CarShare account for you');
-        
-        const providedUsername = await this.checkUsername();
-        console.log(providedUsername);
+    public startControll() {
+        console.log('Welcome', 'username') //TODO change to username
 
-        const providedPassword = await this.checkPassword();
-        console.log(providedPassword);
+        //TODO connect DB
+        //TODO check if is admin, user or unregistered
+        //TODO disconnect DB
     }
 
-    private async checkUsername(): Promise<string> {
-        const response = await prompts({
-            type: 'text',
-            name: 'username',
-            message: 'Please choose a username',
-            hint: 'The username can only contain letters and numbers'
-        });
+    public async adminOptions() {} //TODO loop in here with options (dont forget exit)
 
-        //TODO Check if username exists
-        //TODO Check if username is alphanumeric
-        
-        if(response.username === "") {
-            console.log('Username is not allowed or already exits');
-            return await this.checkUsername();
-        } else {
-            return response.username;
-        }
-    }
+    public async userOptions() {} //TODO loop in here with options (dont forget exit)
 
-    private async checkPassword(): Promise<string> {
-        const questions = [
-            {
-              type: 'password',
-              name: 'password',
-              message: 'Which password would you like to use?',
-              hint: 'Your password must contain at least 6 characters, 1 letter and 1 number'
-            },
-            {
-              type: 'password',
-              name: 'repeatPassword',
-              message: 'Please repeat the password'
-            }
-        ];
-        const response = await prompts(questions);
-
-        //TODO Check password with regex
-
-        if(response.password != response.repeatPassword) {
-            console.log('Your passwords didn\'t match please try again');
-            return await this.checkPassword();
-        } else {
-            return response.password;
-        }
-    }
+    public async unregisteredOptions() {} //TODO loop in here with options (dont forget exit)
 }

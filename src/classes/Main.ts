@@ -1,3 +1,4 @@
+import { UserManagement } from "./UserManagement";
 import { Controll } from "./Controll";
 import prompts from "prompts";
 
@@ -19,17 +20,20 @@ export class Main {
 
         const userChoice = response.value;
         const controll = new Controll();
+        const userManagement = new UserManagement();
 
         if(userChoice === 'login') {
-            controll.login();
+            await userManagement.login(); //TODO receive user obj
+            //TODO proceed to controll if correct
         } else if(userChoice === 'register') {
-            controll.register();
+            await userManagement.register(); //TODO receive user obj
+            //TODO proceed to controll if correct
         } else if(userChoice === 'viewCars') {
             console.log('These are our available cars');
-        } else {
-            console.log('Application has been stopped.');
-            console.log('\n\nThank you for using CarShare!');
-            console.log('We hope to see you again soon!');
         }
+
+        console.log('Application has been stopped.');
+        console.log('\n\nThank you for using CarShare!');
+        console.log('We hope to see you again soon!');
     }
 }
