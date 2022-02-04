@@ -1,6 +1,7 @@
 import { UserManagement } from "./UserManagement";
 import { Controll } from "./Controll";
 import prompts from "prompts";
+import { User } from "./User";
 
 export class Main {
     public async main(): Promise<void> {
@@ -19,15 +20,18 @@ export class Main {
         });
 
         const userChoice = response.value;
-        const controll = new Controll();
         const userManagement = new UserManagement();
 
         if(userChoice === 'login') {
             await userManagement.login(); //TODO receive user obj
             //TODO proceed to controll if correct
+            const controll = new Controll(new User()); //TODO use actual User obj
+            await controll.startControll();
         } else if(userChoice === 'register') {
             await userManagement.register(); //TODO receive user obj
             //TODO proceed to controll if correct
+            const controll = new Controll(new User());//TODO use actual User obj
+            await controll.startControll();
         } else if(userChoice === 'viewCars') {
             console.log('These are our available cars');
         }

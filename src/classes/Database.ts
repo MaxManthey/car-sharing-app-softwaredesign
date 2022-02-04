@@ -14,7 +14,7 @@ export class Database {
     private mongoClient!: Mongo.MongoClient;
 
     private async connect(user: string, pw: string): Promise<void> {
-        const uri: string = "mongodb+srv://max:sw-design@cluster0.19f2v.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
+        const uri: string ='';
         this.mongoClient = new Mongo.MongoClient(uri, { });
         await this.mongoClient.connect();
         console.log("Database connected succesfully") //TODO delete
