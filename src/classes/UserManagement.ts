@@ -1,7 +1,7 @@
 import prompts from "prompts";
 
 export class UserManagement {
-    public async login(): Promise<void> { //TODO Change to User
+    public async login(): Promise<boolean> { //TODO Change to User
         console.log('Please login to your CarShare account');
         const questions = [
             {
@@ -18,10 +18,38 @@ export class UserManagement {
         const response = await prompts(questions);
         const providedUsername = response.username;
         const providedPassword = response.password;
-        console.log(providedUsername, providedPassword)
+        console.log(providedUsername, providedPassword);
+        
+        let loginFailed = false;
+        if(providedUsername == undefined || providedPassword == undefined) {
+            console.log("Username and password can't be undefined");
+            loginFailed = true;
+        } else {
+            //TODO check if user exists and password matches
+        }
 
-        //TODO check if user exists and password matches
-        //If not ask to repeat or leave app
+        if(loginFailed) {
+            const repeatLoginResponse = await prompts({
+                type: 'select',
+                name: 'value',
+                message: 'Would you like to try again or exit the app?',
+                choices: [
+                    { title: 'Try again', value: 'repeat' },
+                    { title: 'Exit', value: 'exit'}
+                ]
+            });
+
+            if(repeatLoginResponse.value == 'repeat') {
+                return this.login();
+            } else {
+                return false;
+            }
+        } else {
+            return true;
+        }
+
+        //TODO If not ask to repeat or leave app
+        
     }
 
     public async register(): Promise<void> { //TODO Change to User
@@ -39,15 +67,16 @@ export class UserManagement {
             type: 'text',
             name: 'username',
             message: 'Please choose a username',
-            hint: 'The username can only contain letters and numbers'
+            hint: 'The username can only contain letters and numbers and must be at least 2 characters long'
         });
 
         //TODO Check if username exists
-        //TODO Check if username is alphanumeric
-        //TODO Username min 2 chars
         
-        if(response.username === "") {
-            console.log('Username is not allowed or already exits');
+        if(response.username == undefined) {
+            console.log('Username can\'t be undefinded please try again');
+            return await this.checkUsername();
+        } else if(!/^[A-Za-z\d]{2,}$/.test(response.username)) {
+            console.log('The username can only contain letters and numbers and must be at least 2 characters long');
             return await this.checkUsername();
         } else {
             return response.username;
@@ -60,7 +89,7 @@ export class UserManagement {
               type: 'password',
               name: 'password',
               message: 'Which password would you like to use?',
-              hint: 'Your password must contain at least 6 characters, 1 letter and 1 number'
+              hint: 'Your password must contain at least 4 characters, 1 letter and 1 number'
             },
             {
               type: 'password',
@@ -70,12 +99,16 @@ export class UserManagement {
         ];
         const response = await prompts(questions);
 
-        //TODO Check password with regex
-
-        if(response.password != response.repeatPassword) {
+        if(response.password == undefined) {
+            console.log('Password can\'t be undefined please try again');
+            return await this.checkPassword();
+        } else if(response.password != response.repeatPassword) {
             console.log('Your passwords didn\'t match please try again');
             return await this.checkPassword();
-        } else {
+        } else if(!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{4,}$/.test(response.password)) {
+            console.log('Your password must contain at least 4 characters, 1 letter and 1 number');
+            return await this.checkPassword();
+        }else {
             return response.password;
         }
     }
