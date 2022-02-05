@@ -1,11 +1,17 @@
+import prompts from "prompts";
+import * as Mongo from "mongodb";
 import { UserManagement } from "./UserManagement";
 import { Controll } from "./Controll";
-import prompts from "prompts";
 import { User } from "./User";
+import { Database } from "./Database";
 
+export let globalDatabase: Database = new Database();
 export class Main {
     public async main(): Promise<void> {
+        const dbConnectionSuccessfull = await globalDatabase.connect();
+        
         //TODO ASCII art
+
         console.log('\nWelcome to CarShare!\n\n');
         const response = await prompts({
             type: 'select',
@@ -19,25 +25,39 @@ export class Main {
             ]
         });
 
-        const userChoice = response.value;
-        const userManagement = new UserManagement();
-
-        if(userChoice === 'login') {
-            await userManagement.login(); //TODO receive user obj
-            //TODO proceed to controll if correct
-            const controll = new Controll(new User()); //TODO use actual User obj
-            await controll.startControll();
-        } else if(userChoice === 'register') {
-            await userManagement.register(); //TODO receive user obj
-            //TODO proceed to controll if correct
-            const controll = new Controll(new User());//TODO use actual User obj
-            await controll.startControll();
-        } else if(userChoice === 'viewCars') {
-            console.log('These are our available cars');
+        if(!dbConnectionSuccessfull) {
+            console.log('Error trying to connect to the Database. \nThe application will be stopped.');
+            return;
         }
 
+        const userChoice = response.value;
+        const userManagement = new UserManagement();
+        
+        if(userChoice === 'login') {
+            const userObj: any = await userManagement.login();
+            if(JSON.stringify(userObj).length > 2) {
+                const controll = new Controll(new User(userObj._id, userObj.username, userObj.password, userObj.isAdmin, userObj.journies)); //TODO convert userObj to actual User
+                await controll.startControll();
+            } else {
+                console.log("Login has been stopped");
+            }
+        } else if(userChoice === 'register') {
+            const userObj: any = await userManagement.register();
+            if(JSON.stringify(userObj).length > 2) {
+                const controll = new Controll(new User(userObj._id, userObj.username, userObj.password, userObj.isAdmin, userObj.journies)); //TODO convert userObj to actual User
+                await controll.startControll();
+            } else {
+                console.log("Login has been stopped");
+            }
+        } else if(userChoice === 'viewCars') {
+            const controll = new Controll(new User(new Mongo.ObjectId(), "", "", false, [])); //TODO convert userObj to actual User
+            await controll.startControll();
+        }
+        
+        await globalDatabase.disconnect();
         console.log('Application has been stopped.');
         console.log('\n\nThank you for using CarShare!');
+        //TODO ASCII art
         console.log('We hope to see you again soon!');
     }
 }

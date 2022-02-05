@@ -1,37 +1,54 @@
+require('dotenv').config();
 import * as Mongo from "mongodb";
-
-// const uri = "mongodb+srv://max:<password>@cluster0.19f2v.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
-// const client = new Mongo.MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-// client.connect(err => {
-//   const collection = client.db("test").collection("devices");
-//   // perform actions on the collection object
-//   client.close();
-// });
-
-
 export class Database {
-    private readonly dbName: string = "TodoApp";
+    private readonly dbName: string = "car-sharing";
     private mongoClient!: Mongo.MongoClient;
+    private usersCollection: Mongo.Collection;
+    private carsCollection: Mongo.Collection;
+    private journiesCollection: Mongo.Collection;
+    
 
-    private async connect(user: string, pw: string): Promise<void> {
-        const uri: string ='';
+    public async connect(): Promise<boolean> {
+        const uri: string = 'mongodb+srv://'+process.env.DB_USER+':'+process.env.DB_PASS+'@cluster0.19f2v.mongodb.net/'+this.dbName+'?retryWrites=true&w=majority';
         this.mongoClient = new Mongo.MongoClient(uri, { });
         await this.mongoClient.connect();
-        console.log("Database connected succesfully") //TODO delete
-        // this.dbUsers = this.mongoClient.db(this.dbName).collection(this.dbUsersCollectionName);
-        // this.dbQuiz = this.mongoClient.db(this.dbName).collection(this.dbQuizCollectionName);
-        // this.dbQuestions = this.mongoClient.db(this.dbName).collection(this.dbQuestionsCollectionName);
-        // console.log("Database connection", this.dbUsers != undefined);
-        // return this.dbUsers != undefined;
+        this.usersCollection = this.mongoClient.db(this.dbName).collection('users');
+        this.carsCollection = this.mongoClient.db(this.dbName).collection('cars');
+        this.journiesCollection = this.mongoClient.db(this.dbName).collection('journies');
+
+        if(this.usersCollection == undefined || this.carsCollection == undefined || this.journiesCollection == undefined) {
+            return false;
+        }
+        return true;
     }
 
     public async disconnect(): Promise<void> {
         if (this.mongoClient) {
             await this.mongoClient.close();
-            console.log("Database disconnected successfull");
+            console.log("Database disconnected successfully");
         }
     }
+
+    public async userExists(username: string): Promise<boolean> {
+        const requestedUser = await this.usersCollection.findOne({"username": username});
+        return requestedUser != null;
+    }
+
+    public async passwordMatching(username: string, password: string): Promise<boolean> {
+        const requestedUser = await this.usersCollection.findOne({"username": username});
+        return requestedUser != null && requestedUser.password == password;
+    }
+
+    public async insertNewUser(username: string, password: string): Promise<void> {
+        await this.usersCollection.insertOne({
+            "username": username,
+            "password": password,
+            "isAdmin": false,
+            "all_Journies": [] 
+        })
+    }
+
+    public async getExistingUser(username: string): Promise<object> {
+        return await this.usersCollection.findOne({"username": username})
+    }
 }
-
-
-//un: max pw: sw-design

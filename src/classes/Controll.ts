@@ -10,11 +10,10 @@ export class Controll {
     }
 
     public async startControll(): Promise<void> {
-        console.log('Welcome', 'username'); //TODO change to actual username
-
-        //TODO connect DB
+        console.log('\nWelcome', this.user.getUsername(),'\n');
         
-        let isRegistered = true, isAdmin = true; //TODO Change to actual data
+        let isRegistered = this.user.getUsername().length > 0 ? true : false;
+        let isAdmin = this.user.getIsAdmin(); 
 
         let userOptions: any = {
             type: 'select',
@@ -38,8 +37,7 @@ export class Controll {
             continueLoop = await this.displayUserOptions(userOptions);
         }
         
-        console.log('Goodbye', 'username'); //TODO change to actual username
-        //TODO disconnect DB
+        console.log('\nGoodbye', this.user.getUsername(), '\n');
     }
 
 
