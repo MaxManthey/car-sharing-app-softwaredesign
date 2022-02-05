@@ -1,8 +1,10 @@
 import prompts from "prompts";
+import { globalDatabase } from "./Main";
 
 export class UserManagement {
-    public async login(): Promise<boolean> { //TODO Change to User
+    public async login(): Promise<object> {
         console.log('Please login to your CarShare account');
+
         const questions = [
             {
               type: 'text',
@@ -18,14 +20,17 @@ export class UserManagement {
         const response = await prompts(questions);
         const providedUsername = response.username;
         const providedPassword = response.password;
-        console.log(providedUsername, providedPassword);
         
         let loginFailed = false;
         if(providedUsername == undefined || providedPassword == undefined) {
-            console.log("Username and password can't be undefined");
+            console.log("Username and/or password can't be undefined");
             loginFailed = true;
-        } else {
-            //TODO check if user exists and password matches
+        } else if(!(await globalDatabase.userExists(providedUsername))) {
+            console.log("The provided username does not exist");
+            loginFailed = true;
+        } else if(!(await globalDatabase.passwordMatching(providedUsername, providedPassword))) {
+            console.log("Password incorrect");
+            loginFailed = true;
         }
 
         if(loginFailed) {
@@ -42,24 +47,21 @@ export class UserManagement {
             if(repeatLoginResponse.value == 'repeat') {
                 return this.login();
             } else {
-                return false;
+                return {};
             }
         } else {
-            return true;
+            return await globalDatabase.getExistingUser(providedUsername);
         }
-
-        //TODO If not ask to repeat or leave app
-        
     }
 
-    public async register(): Promise<void> { //TODO Change to User
+    public async register(): Promise<object> {
         console.log('Let\'s register a new CarShare account for you');
         
         const providedUsername = await this.checkUsername();
-        console.log(providedUsername);
-
         const providedPassword = await this.checkPassword();
-        console.log(providedPassword);
+        
+        await globalDatabase.insertNewUser(providedUsername, providedPassword);
+        return await globalDatabase.getExistingUser(providedUsername);
     }
 
     private async checkUsername(): Promise<string> {
@@ -69,14 +71,15 @@ export class UserManagement {
             message: 'Please choose a username',
             hint: 'The username can only contain letters and numbers and must be at least 2 characters long'
         });
-
-        //TODO Check if username exists
         
         if(response.username == undefined) {
             console.log('Username can\'t be undefinded please try again');
             return await this.checkUsername();
         } else if(!/^[A-Za-z\d]{2,}$/.test(response.username)) {
             console.log('The username can only contain letters and numbers and must be at least 2 characters long');
+            return await this.checkUsername();
+        } else if(await globalDatabase.userExists(response.username)) {
+            console.log('Username already exists');
             return await this.checkUsername();
         } else {
             return response.username;
