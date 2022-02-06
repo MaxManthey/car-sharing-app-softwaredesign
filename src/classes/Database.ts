@@ -48,6 +48,20 @@ export class Database {
         })
     }
 
+    public async insertNewCar(drive: string, description: string, earliestUseTime: string, latestUseTime: string, maxUseTime: number, flatFee: number, pricePerMinute: number): Promise<void> {
+        await this.carsCollection.insertOne({
+            "drive": drive,
+            "description": description,
+            "earliestUseTime": earliestUseTime,
+            "latestUseTime": latestUseTime,
+            "maxUseTime": maxUseTime,
+            "flatFee": flatFee,
+            "pricePerMinute": pricePerMinute
+        })
+    }
+
+    // public async insertNewJourney(userId: Mongo.ObjectId, carId: Mongo.ObjectId, carDescription: string, dateStart:)
+
     public async getExistingUser(username: string): Promise<object> {
         return await this.usersCollection.findOne({"username": username})
     }

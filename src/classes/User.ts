@@ -1,5 +1,4 @@
 import { ObjectId } from "mongodb";
-import { Journey } from "./Journey";
 export class User {
     private _id: ObjectId;
     private username: string;
@@ -15,13 +14,13 @@ export class User {
         this.journies = journies;
     }
 
-    public getId() { return this._id }
+    public getId(): ObjectId { return this._id; }
 
-    public getUsername() { return this.username }
+    public getUsername(): string { return this.username; }
 
-    public getPassword() { return this.password }
+    public getPassword(): string { return this.password; }
 
-    public getIsAdmin() { return this.isAdmin }
+    public getIsAdmin(): boolean { return this.isAdmin; }
 
-    public getJournies() { return this.journies }
+    public getJournies(): ObjectId[] { return this.journies; }
 }
