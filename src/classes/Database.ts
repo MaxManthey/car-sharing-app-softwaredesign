@@ -45,7 +45,7 @@ export class Database {
             "password": password,
             "isAdmin": false,
             "all_Journies": [] 
-        })
+        });
     }
 
     public async insertNewCar(drive: string, description: string, earliestUseTime: string, latestUseTime: string, maxUseTime: number, flatFee: number, pricePerMinute: number): Promise<void> {
@@ -57,12 +57,16 @@ export class Database {
             "maxUseTime": maxUseTime,
             "flatFee": flatFee,
             "pricePerMinute": pricePerMinute
-        })
+        });
     }
 
     // public async insertNewJourney(userId: Mongo.ObjectId, carId: Mongo.ObjectId, carDescription: string, dateStart:)
 
     public async getExistingUser(username: string): Promise<object> {
-        return await this.usersCollection.findOne({"username": username})
+        return await this.usersCollection.findOne({"username": username});
+    }
+
+    public async getTenCarsToDisplay(): Promise<object[]> {
+        return await this.carsCollection.aggregate([{$sample: {size: 10}}]).toArray();
     }
 }

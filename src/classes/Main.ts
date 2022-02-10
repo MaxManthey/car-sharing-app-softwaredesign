@@ -36,7 +36,7 @@ export class Main {
         if(userChoice === 'login') {
             const userObj: any = await userManagement.login();
             if(JSON.stringify(userObj).length > 2) {
-                const controll = new Controll(new User(userObj._id, userObj.username, userObj.password, userObj.isAdmin, userObj.journies)); //TODO convert userObj to actual User
+                const controll = new Controll(new User(userObj._id, userObj.username, userObj.password, userObj.isAdmin, userObj.journies));
                 await controll.startControll();
             } else {
                 console.log("Login has been stopped");
@@ -44,13 +44,13 @@ export class Main {
         } else if(userChoice === 'register') {
             const userObj: any = await userManagement.register();
             if(JSON.stringify(userObj).length > 2) {
-                const controll = new Controll(new User(userObj._id, userObj.username, userObj.password, userObj.isAdmin, userObj.journies)); //TODO convert userObj to actual User
+                const controll = new Controll(new User(userObj._id, userObj.username, userObj.password, userObj.isAdmin, userObj.journies));
                 await controll.startControll();
             } else {
                 console.log("Login has been stopped");
             }
         } else if(userChoice === 'viewCars') {
-            const controll = new Controll(new User(new Mongo.ObjectId(), "", "", false, [])); //TODO convert userObj to actual User
+            const controll = new Controll(new User(new Mongo.ObjectId(), "", "", false, []));
             await controll.startControll();
         }
         
@@ -61,3 +61,8 @@ export class Main {
         console.log('We hope to see you again soon!');
     }
 }
+//TODO implement Design Pattern 1
+//TODO implement Design Pattern 2
+//TODO implement Test
+//TODO run linter
+//TODO use loop in main for logout
