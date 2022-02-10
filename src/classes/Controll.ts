@@ -51,11 +51,11 @@ export class Controll {
 
         const userChoice: string = response.value;
         if(userChoice == 'viewCars') { //TODO change to switch case
-            await this.viewCars();
+            await this.viewCars(); //TODO check in function if user is registered
             return true;
         }
         else if(userChoice == 'viewFilteredCars') {
-            await this.viewFilteredCars();
+            await this.viewFilteredCars(); //TODO check in function if user is registered
             return true;
         }
         else if(userChoice == 'viewStatistics') {
@@ -127,17 +127,22 @@ export class Controll {
                 }
             } else {
                 //TODO check if car is available
-                //TODO Book journey
                 const chosenCar = availableCars[chosenCarNum-1];
-                const date: Date = new Date(bookingPreferences.date);
+                const dateTime: Date = new Date(bookingPreferences.date);
+                const date: Date = new Date(dateTime.getFullYear(), dateTime.getMonth(), dateTime.getDate());
                 const useTime: number = bookingPreferences.useTime;
                 const costAmount: number = chosenCar.getFlatFee() + chosenCar.getPricePerMinute() * useTime;
-
+                
+                const carTimeOk = chosenCar.providedDateTimeMatch(dateTime.getHours(), dateTime.getMinutes(), useTime);
+                const carNotBookedYet = await chosenCar.carNotBookedYet(date, dateTime.getHours(), dateTime.getMinutes(), useTime);
+                if(!carTimeOk || !carNotBookedYet) {
+                    return;
+                }
+                
                 console.log("Total cost:", costAmount);
-
-                const minutes = date.getMinutes() < 10 ? '0'+date.getMinutes().toString() : date.getMinutes().toString();
-                await this.user.bookJourney(chosenCar.getId(), chosenCar.getDescription(), new Date(date.getFullYear(), date.getMonth(), date.getDate()), date.getHours()+':'+minutes, useTime, costAmount);
-                return;
+                const hours = dateTime.getHours() < 10 ? '0'+dateTime.getHours().toString() : dateTime.getHours().toString();
+                const minutes = dateTime.getMinutes() < 10 ? '0'+dateTime.getMinutes().toString() : dateTime.getMinutes().toString();
+                await this.user.bookJourney(chosenCar.getId(), chosenCar.getDescription(), date, hours+':'+minutes, useTime, costAmount);
             }
         }
     }

@@ -32,8 +32,7 @@ export class Database {
         await this.usersCollection.insertOne({
             "username": username,
             "password": password,
-            "isAdmin": false,
-            "allJournies": [] 
+            "isAdmin": false
         });
     }
 
@@ -50,13 +49,6 @@ export class Database {
     public async getExistingUser(username: string): Promise<object> {
         return await this.usersCollection.findOne({"username": username});
     }
-    
-    // public async updateUserJournies(userId: Mongo.ObjectId, journeyId: Mongo.ObjectId): Promise<void> {
-    //     await this.usersCollection.updateOne(
-    //         { "_id": userId },
-    //         { "$push": { "allJournies": journeyId}}
-    //     );
-    // }
 
     public async getUserJournies(userId: Mongo.ObjectId): Promise<object> {
         return await this.journiesCollection.find({ "userId": userId }).toArray();
@@ -73,6 +65,13 @@ export class Database {
             "costAmount": costAmount
         });
         return journeyId.insertedId;
+    }
+
+    public async getJourniesByCarIdAndDate(carId: Mongo.ObjectId, dateStart: Date): Promise<object> {
+        return await this.journiesCollection.find({
+            "carId": carId,
+            "dateStart": dateStart
+        }).toArray();
     }
 
     public async insertNewCar(drive: string, description: string, earliestUseTime: string, latestUseTime: string, maxUseTime: number, flatFee: number, pricePerMinute: number): Promise<void> {
