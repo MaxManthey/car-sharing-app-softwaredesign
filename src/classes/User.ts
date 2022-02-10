@@ -1,10 +1,10 @@
 import { ObjectId } from "mongodb";
 export class User {
-    private _id: ObjectId;
-    private username: string;
-    private password: string;
-    private isAdmin: boolean;
-    private journies: ObjectId[];
+    protected _id: ObjectId;
+    protected username: string;
+    protected password: string;
+    protected isAdmin: boolean;
+    protected journies: ObjectId[];
 
     constructor(id: ObjectId, username: string, password: string, isAdmin: boolean, journies: ObjectId[]) {
         this._id = id;

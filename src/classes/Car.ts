@@ -36,4 +36,14 @@ export class Car {
     public getFlatFee(): number { return this.flatFee; }
 
     public getPricePerMinute(): number { return this.pricePerMinute; }
+
+    public displayInformation(): void {
+        console.log('Description \t', this.description);
+        console.log('Drive \t\t', this.drive);
+        console.log('Flat fee \t', this.flatFee);
+        console.log('Price per min \t', this.pricePerMinute);
+        console.log('-> Earliest time available\t', this.earliestUseTime);
+        console.log('-> Latest time available \t', this.latestUseTime);
+        console.log('-> Maximum time available \t', this.maxUseTime, (this.maxUseTime == 1 ? 'minute' : 'minutes'));
+    }
 }
