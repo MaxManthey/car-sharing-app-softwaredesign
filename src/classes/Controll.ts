@@ -28,10 +28,12 @@ export class Controll {
         };
         if(isRegistered) {
             userOptions.choices.push({ title: 'View statistics', description: 'View your statistics', value: 'viewStatistics' });
+            userOptions.choices.push({ title: 'View upcoming journies', description: 'View your upcoming journies', value: 'viewUpcomingJournies' });
+            userOptions.choices.push({ title: 'View past journies', description: 'View your past journies', value: 'viewPastJournies' });
         }
         if(this.user.getIsAdmin()) {
             userOptions.choices.push({ title: 'Add new car', description: 'Add a new car to the pool', value: 'addCar' });
-            this.admin = new Admin(this.user.getId(), this.user.getUsername(), this.user.getPassword(), true, this.user.getJournies());
+            this.admin = new Admin(this.user.getId(), this.user.getUsername(), this.user.getPassword(), true);
         }
         userOptions.choices.push({ title: 'Exit', description: 'Exit the application', value: 'exit' })
 
@@ -48,7 +50,7 @@ export class Controll {
         const response = await prompts(userOptions);
 
         const userChoice: string = response.value;
-        if(userChoice == 'viewCars') {
+        if(userChoice == 'viewCars') { //TODO change to switch case
             await this.viewCars();
             return true;
         }
@@ -57,7 +59,15 @@ export class Controll {
             return true;
         }
         else if(userChoice == 'viewStatistics') {
-            await this.viewStatistics();
+            await this.user.viewStatistics();
+            return true;
+        }
+        else if(userChoice == 'viewUpcomingJournies') {
+            await this.user.viewUpcomingJournies();
+            return true;
+        }
+        else if(userChoice == 'viewPastJournies') {
+            await this.user.viewPastJournies();
             return true;
         }
         else if(userChoice == 'addCar') {
@@ -93,16 +103,15 @@ export class Controll {
             message: 'Please choose an option',
             validate: chosenCar => (chosenCar < 0 || chosenCar > carCounter) ? `Must be > 0 and <= ${carCounter}` : true
         });
-        const chosenCar = response.chosenCar;
+        const chosenCarNum = response.chosenCar;
 
-        if(chosenCar == undefined || chosenCar == carCounter) {
+        if(chosenCarNum == undefined || chosenCarNum == carCounter) {
             return;
         } else {
-            console.log('You\'ve chosen car no.' + chosenCar);
-            const bookingSuccessful = await this.setBookingPreferences();
-            if(!bookingSuccessful) {
-                console.log('Sorry about that!');
-                const response = await prompts({
+            const bookingPreferences: any = await this.setBookingPreferences();
+            if(JSON.stringify(bookingPreferences).length < 3) {
+                console.log('The provided booking details are incorrect.');
+                const retryResponse = await prompts({
                     type: 'select',
                     name: 'value',
                     message: 'Would you like to try again?',
@@ -111,26 +120,37 @@ export class Controll {
                         { title: 'No', value: false }
                     ]
                 });
-                if(response.value) {
+                if(retryResponse.value) {
                     await this.viewCars();
                 } else {
                     return;
                 }
             } else {
+                //TODO check if car is available
+                //TODO Book journey
+                const chosenCar = availableCars[chosenCarNum-1];
+                const date: Date = new Date(bookingPreferences.date);
+                const useTime: number = bookingPreferences.useTime;
+                const costAmount: number = chosenCar.getFlatFee() + chosenCar.getPricePerMinute() * useTime;
+
+                console.log("Total cost:", costAmount);
+
+                const minutes = date.getMinutes() < 10 ? '0'+date.getMinutes().toString() : date.getMinutes().toString();
+                await this.user.bookJourney(chosenCar.getId(), chosenCar.getDescription(), new Date(date.getFullYear(), date.getMonth(), date.getDate()), date.getHours()+':'+minutes, useTime, costAmount);
                 return;
             }
         }
     }
 
-    private async setBookingPreferences(): Promise<boolean> {
+    private async setBookingPreferences(): Promise<object> {
         console.log('Let us know when your journey should start.')
         const questions = [
-            //TODO ask for date
             {
-                type: 'text',
-                name: 'timeTripStart',
-                message: 'What time do you want to start your journey? - the format must be hh:mm',
-                validate: timeTripStart => !/^([01][0-9]|2[0-3]):([0-5][0-9])$/.test(timeTripStart) ? `Must match hh:mm pattern` : true
+                type: 'date',
+                name: 'date',
+                message: 'When would you like to start your trip?',
+                initial: new Date(),
+                validate: date => date < Date.now() ? 'Date must be in the future' : true
             },
             {
                 type: 'number',
@@ -140,21 +160,20 @@ export class Controll {
             }
         ];
         const response = await prompts(questions);
-        
-        if(response.timeTripStart == undefined || response.useTime == undefined) {
-            return false;
+
+        if(Object.keys(response).length != 2) {
+            console.log('Entries can\'t be undefined.')
+            return {}
         }
-        //TODO check if car is available
-            // if yes -> book car (maybe ask before) return true
-            //if no -> return false and ask to go back or start again
-        return true;
+
+        return {
+            date: response.date.toISOString(),
+            useTime: response.useTime
+        }
     }
     
     private async viewFilteredCars() {
         console.log('in filtered cars')
+        //TODO Filter for type of drive
     } //TODO add params and implement
-
-    private async viewStatistics() {
-        console.log('in statistics')
-    } //TODO implement
 }
