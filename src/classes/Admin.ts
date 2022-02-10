@@ -4,8 +4,8 @@ import { User } from "./User";
 import { globalDatabase } from "./Main";
 
 export class Admin extends User {
-    constructor(id: ObjectId, username: string, password: string, isAdmin: boolean, journies: ObjectId[]) {
-        super(id, username, password, isAdmin, journies);
+    constructor(id: ObjectId, username: string, password: string, isAdmin: boolean) {
+        super(id, username, password, isAdmin);
     }
 
     public async addCar(): Promise<void> {

@@ -25,8 +25,16 @@ export class Database {
     public async disconnect(): Promise<void> {
         if (this.mongoClient) {
             await this.mongoClient.close();
-            console.log("Database disconnected successfully");
         }
+    }
+
+    public async insertNewUser(username: string, password: string): Promise<void> {
+        await this.usersCollection.insertOne({
+            "username": username,
+            "password": password,
+            "isAdmin": false,
+            "allJournies": [] 
+        });
     }
 
     public async userExists(username: string): Promise<boolean> {
@@ -39,13 +47,32 @@ export class Database {
         return requestedUser != null && requestedUser.password == password;
     }
 
-    public async insertNewUser(username: string, password: string): Promise<void> {
-        await this.usersCollection.insertOne({
-            "username": username,
-            "password": password,
-            "isAdmin": false,
-            "all_Journies": [] 
+    public async getExistingUser(username: string): Promise<object> {
+        return await this.usersCollection.findOne({"username": username});
+    }
+    
+    // public async updateUserJournies(userId: Mongo.ObjectId, journeyId: Mongo.ObjectId): Promise<void> {
+    //     await this.usersCollection.updateOne(
+    //         { "_id": userId },
+    //         { "$push": { "allJournies": journeyId}}
+    //     );
+    // }
+
+    public async getUserJournies(userId: Mongo.ObjectId): Promise<object> {
+        return await this.journiesCollection.find({ "userId": userId }).toArray();
+    }
+
+    public async insertNewJourney(userId: Mongo.ObjectId, carId: Mongo.ObjectId, description: string, dateStart: Date, timeStart, duration, costAmount): Promise<Mongo.ObjectId> {
+        const journeyId: any = await this.journiesCollection.insertOne({
+            "userId": userId,
+            "carId": carId,
+            "description": description,
+            "dateStart": dateStart,
+            "timeStart": timeStart,
+            "duration": duration,
+            "costAmount": costAmount
         });
+        return journeyId.insertedId;
     }
 
     public async insertNewCar(drive: string, description: string, earliestUseTime: string, latestUseTime: string, maxUseTime: number, flatFee: number, pricePerMinute: number): Promise<void> {
@@ -58,12 +85,6 @@ export class Database {
             "flatFee": flatFee,
             "pricePerMinute": pricePerMinute
         });
-    }
-
-    // public async insertNewJourney(userId: Mongo.ObjectId, carId: Mongo.ObjectId, carDescription: string, dateStart:)
-
-    public async getExistingUser(username: string): Promise<object> {
-        return await this.usersCollection.findOne({"username": username});
     }
 
     public async getTenCarsToDisplay(): Promise<object[]> {
