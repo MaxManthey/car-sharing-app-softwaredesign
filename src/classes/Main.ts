@@ -15,29 +15,6 @@ export class Main {
         }
         //TODO ASCII art
 
-        // const test = await prompts({
-        //     type: 'date',
-        //     name: 'value',
-        //     message: 'Pick a date',
-        //     initial: new Date(),
-        //     validate: date => date < Date.now() ? 'Date must be in the future' : true
-        // });
-
-        // const testdate: Date = test.value;
-        // console.log(testdate)
-        // console.log(testdate.getDate())
-        // console.log(testdate.getMonth()+1)
-        // console.log(testdate.getFullYear())
-        // console.log()
-        // console.log(testdate.getHours())
-        // console.log(testdate.getMinutes())
-        // console.log(testdate.getHours() + ":" + testdate.getMinutes())
-        // console.log()
-        // const testString = testdate.toISOString()
-        // console.log(new Date(testString))
-        // console.log(new Date(2021, 1, 23))
-
-
         console.log('\nWelcome to CarShare!\n\n');
         const response = await prompts({
             type: 'select',
@@ -76,9 +53,8 @@ export class Main {
         }
 
         await globalDatabase.disconnect();
-        console.log('Application has been stopped.');
-        console.log('\n\nThank you for using CarShare!');
         //TODO ASCII art
+        console.log('\n\nThank you for using CarShare!');
         console.log('We hope to see you again soon!');
     }
 }
