@@ -31,7 +31,7 @@ export class User {
         const totalAmount = allJournies.reduce((acc, journey) => acc + journey.costAmount, 0);
         console.log("Total sum of fares \t", totalAmount);
         console.log("Amount of fares booked\t", allJournies.length);
-        console.log("Average price of fares\t", totalAmount / allJournies.length);
+        console.log("Average price of fares\t", (totalAmount / allJournies.length).toFixed(2));
     }
 
     public async viewUpcomingJournies(): Promise<void> {
