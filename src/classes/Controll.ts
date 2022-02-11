@@ -9,7 +9,6 @@ import { UserManagement } from "./UserManagement";
 export class Controll {
     private user: User;
     private admin: Admin;
-    private isRegistered: boolean;
     private userOptions: any;
     
     constructor(user: User) {
@@ -18,8 +17,6 @@ export class Controll {
 
     public async startControll(): Promise<void> {
         console.log('\nWelcome', this.user.getUsername(),'\n');
-        
-        this.isRegistered = this.user.getUsername().length > 0 ? true : false;
 
         this.setUserOptions()
 
@@ -122,21 +119,23 @@ export class Controll {
                     return;
                 }
 
-                if(!this.isRegistered) {
+                if(this.user.isNull()) {
                     this.user = await this.promptUserToRegisterOrLogin();
                     if(this.user.getUsername().length > 0 ? false : true) {
                         return;
                     }
+                    this.setUserOptions();
                 }
                 
                 console.log("Total cost:", costAmount); 
                 if(! await this.confirmBooking()) {
                     console.log('The process has been canceled.');
+                    return;
                 }
                 const hours = dateTime.getHours() < 10 ? '0'+dateTime.getHours().toString() : dateTime.getHours().toString();
                 const minutes = dateTime.getMinutes() < 10 ? '0'+dateTime.getMinutes().toString() : dateTime.getMinutes().toString();
                 await this.user.bookJourney(chosenCar.getId(), chosenCar.getDescription(), date, hours+':'+minutes, useTime, costAmount);
-                console.log('The car has been booked successfully.')
+                console.log('\nYour journey has been booked successfully!\n');
             }
         }
     }
@@ -238,18 +237,24 @@ export class Controll {
             return;
         }
 
-        if(!this.isRegistered) {
+        if(this.user.isNull()) {
             this.user = await this.promptUserToRegisterOrLogin();
             if(this.user.getUsername().length > 0 ? false : true) {
                 return;
             }
+            this.setUserOptions();
+        }
+
+        if(! await this.confirmBooking()) {
+            console.log('The process has been canceled.');
+            return;
         }
         
         const chosenCar = availableCars[chosenCarNum-1];
         const hours = dateTime.getHours() < 10 ? '0'+dateTime.getHours().toString() : dateTime.getHours().toString();
         const minutes = dateTime.getMinutes() < 10 ? '0'+dateTime.getMinutes().toString() : dateTime.getMinutes().toString();
         await this.user.bookJourney(chosenCar.getId(), chosenCar.getDescription(), date, hours+':'+minutes, useTime, chosenCar.getFlatFee() + chosenCar.getPricePerMinute() * useTime);
-        console.log('Your journey has been booked successfully!');
+        console.log('\nYour journey has been booked successfully!\n');
     }
 
 
@@ -276,15 +281,11 @@ export class Controll {
         if(userChoice === 'login') {
             const userObj: any = await userManagement.login();
             if(JSON.stringify(userObj).length > 2) {
-                this.isRegistered = true;
-                this.setUserOptions();
                 return new User(userObj._id, userObj.username, userObj.password, userObj.isAdmin);
             } 
         } else if(userChoice === 'register') {
             const userObj: any = await userManagement.register();
             if(JSON.stringify(userObj).length > 2) {
-                this.isRegistered = true;
-                this.setUserOptions();
                 return new User(userObj._id, userObj.username, userObj.password, userObj.isAdmin);
             }
         }
@@ -302,7 +303,7 @@ export class Controll {
                 { title: 'Filter and view cars', description: 'Filter available cars to your preferance', value: 'viewFilteredCars'}
             ]
         };
-        if(this.isRegistered) {
+        if(!this.user.isNull()) {
             this.userOptions.choices.push({ title: 'View statistics', description: 'View your statistics', value: 'viewStatistics' });
             this.userOptions.choices.push({ title: 'View upcoming journies', description: 'View your upcoming journies', value: 'viewUpcomingJournies' });
             this.userOptions.choices.push({ title: 'View past journies', description: 'View your past journies', value: 'viewPastJournies' });
