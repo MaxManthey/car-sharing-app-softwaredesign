@@ -1,12 +1,16 @@
 import prompts from "prompts";
 import { User } from "./User";
 import { globalDatabase } from "./Main";
+import { ObjectId } from "mongodb";
 import { Admin } from "./Admin";
 import { Car } from "./Car";
+import { UserManagement } from "./UserManagement";
 
 export class Controll {
     private user: User;
     private admin: Admin;
+    private isRegistered: boolean;
+    private userOptions: any;
     
     constructor(user: User) {
         this.user = user;
@@ -15,67 +19,45 @@ export class Controll {
     public async startControll(): Promise<void> {
         console.log('\nWelcome', this.user.getUsername(),'\n');
         
-        let isRegistered = this.user.getUsername().length > 0 ? true : false; //TODO get different Method 
+        this.isRegistered = this.user.getUsername().length > 0 ? true : false;
 
-        let userOptions: any = {
-            type: 'select',
-            name: 'value',
-            message: 'Please select an option',
-            choices: [
-                { title: 'View available cars', description: 'View cars that are available now', value: 'viewCars' },
-                { title: 'Filter and view cars', description: 'Filter available cars to your preferance', value: 'viewFilteredCars'}
-            ]
-        };
-        if(isRegistered) {
-            userOptions.choices.push({ title: 'View statistics', description: 'View your statistics', value: 'viewStatistics' });
-            userOptions.choices.push({ title: 'View upcoming journies', description: 'View your upcoming journies', value: 'viewUpcomingJournies' });
-            userOptions.choices.push({ title: 'View past journies', description: 'View your past journies', value: 'viewPastJournies' });
-        }
-        if(this.user.getIsAdmin()) {
-            userOptions.choices.push({ title: 'Add new car', description: 'Add a new car to the pool', value: 'addCar' });
-            this.admin = new Admin(this.user.getId(), this.user.getUsername(), this.user.getPassword(), true);
-        }
-        userOptions.choices.push({ title: 'Exit', description: 'Exit the application', value: 'exit' })
+        this.setUserOptions()
 
         let continueLoop: boolean = true;
         while(continueLoop) {
-            continueLoop = await this.displayUserOptions(userOptions);
+            continueLoop = await this.displayUserOptions();
         }
         
         console.log('\nGoodbye', this.user.getUsername(), '\n');
     }
 
 
-    private async displayUserOptions(userOptions: any): Promise<boolean>{
-        const response = await prompts(userOptions);
+    private async displayUserOptions(): Promise<boolean>{
+        const response = await prompts(this.userOptions);
 
         const userChoice: string = response.value;
-        if(userChoice == 'viewCars') { //TODO change to switch case
-            await this.viewCars(); //TODO check in function if user is registered
-            return true;
-        }
-        else if(userChoice == 'viewFilteredCars') {
-            await this.viewFilteredCars(); //TODO check in function if user is registered
-            return true;
-        }
-        else if(userChoice == 'viewStatistics') {
-            await this.user.viewStatistics();
-            return true;
-        }
-        else if(userChoice == 'viewUpcomingJournies') {
-            await this.user.viewUpcomingJournies();
-            return true;
-        }
-        else if(userChoice == 'viewPastJournies') {
-            await this.user.viewPastJournies();
-            return true;
-        }
-        else if(userChoice == 'addCar') {
-            await this.admin.addCar();
-            return true;
-        }
-        else {
-            return false;
+        
+        switch(userChoice) {
+            case 'viewCars':
+                await this.viewCars();
+                return true;
+            case 'viewFilteredCars':
+                await this.viewFilteredCars();
+                return true;
+            case 'viewStatistics':
+                await this.user.viewStatistics();
+                return true;
+            case 'viewUpcomingJournies':
+                await this.user.viewUpcomingJournies();
+                return true;
+            case 'viewPastJournies':
+                await this.user.viewPastJournies();
+                return true;
+            case 'addCar':
+                await this.admin.addCar();
+                return true;
+            default:
+                return false;  
         }
     }
 
@@ -139,11 +121,22 @@ export class Controll {
                     console.log(message);
                     return;
                 }
+
+                if(!this.isRegistered) {
+                    this.user = await this.promptUserToRegisterOrLogin();
+                    if(this.user.getUsername().length > 0 ? false : true) {
+                        return;
+                    }
+                }
                 
-                console.log("Total cost:", costAmount);
+                console.log("Total cost:", costAmount); 
+                if(! await this.confirmBooking()) {
+                    console.log('The process has been canceled.');
+                }
                 const hours = dateTime.getHours() < 10 ? '0'+dateTime.getHours().toString() : dateTime.getHours().toString();
                 const minutes = dateTime.getMinutes() < 10 ? '0'+dateTime.getMinutes().toString() : dateTime.getMinutes().toString();
                 await this.user.bookJourney(chosenCar.getId(), chosenCar.getDescription(), date, hours+':'+minutes, useTime, costAmount);
+                console.log('The car has been booked successfully.')
             }
         }
     }
@@ -244,11 +237,93 @@ export class Controll {
             console.log('No car has been booked.')
             return;
         }
+
+        if(!this.isRegistered) {
+            this.user = await this.promptUserToRegisterOrLogin();
+            if(this.user.getUsername().length > 0 ? false : true) {
+                return;
+            }
+        }
         
         const chosenCar = availableCars[chosenCarNum-1];
         const hours = dateTime.getHours() < 10 ? '0'+dateTime.getHours().toString() : dateTime.getHours().toString();
         const minutes = dateTime.getMinutes() < 10 ? '0'+dateTime.getMinutes().toString() : dateTime.getMinutes().toString();
         await this.user.bookJourney(chosenCar.getId(), chosenCar.getDescription(), date, hours+':'+minutes, useTime, chosenCar.getFlatFee() + chosenCar.getPricePerMinute() * useTime);
         console.log('Your journey has been booked successfully!');
+    }
+
+
+    private async promptUserToRegisterOrLogin(): Promise<User> {
+        const response = await prompts({
+            type: 'select',
+            name: 'value',
+            message: 'Sorry but you need an account to book a car.',
+            choices: [
+                { title: 'Login', description: 'Login to your existing account', value: 'login' },
+                { title: 'Register', description: 'Register a new account', value: 'register'},
+                { title: 'Exit', description: 'Exit the application', value: 'exit' }
+            ]
+        });
+        const userChoice = response.value;
+
+        if(userChoice == 'exit' || userChoice == undefined) {
+            console.log('Sorry but you need an account to proceed.');
+            return new User(new ObjectId(), "", "", false);
+        }
+
+        const userManagement = new UserManagement();
+        
+        if(userChoice === 'login') {
+            const userObj: any = await userManagement.login();
+            if(JSON.stringify(userObj).length > 2) {
+                this.isRegistered = true;
+                this.setUserOptions();
+                return new User(userObj._id, userObj.username, userObj.password, userObj.isAdmin);
+            } 
+        } else if(userChoice === 'register') {
+            const userObj: any = await userManagement.register();
+            if(JSON.stringify(userObj).length > 2) {
+                this.isRegistered = true;
+                this.setUserOptions();
+                return new User(userObj._id, userObj.username, userObj.password, userObj.isAdmin);
+            }
+        }
+        console.log('Sorry but you need an account to proceed.');
+        return new User(new ObjectId(), "", "", false);
+    }
+
+    private setUserOptions(): void {
+        this.userOptions = {
+            type: 'select',
+            name: 'value',
+            message: 'Please select an option',
+            choices: [
+                { title: 'View available cars', description: 'View cars that are available now', value: 'viewCars' },
+                { title: 'Filter and view cars', description: 'Filter available cars to your preferance', value: 'viewFilteredCars'}
+            ]
+        };
+        if(this.isRegistered) {
+            this.userOptions.choices.push({ title: 'View statistics', description: 'View your statistics', value: 'viewStatistics' });
+            this.userOptions.choices.push({ title: 'View upcoming journies', description: 'View your upcoming journies', value: 'viewUpcomingJournies' });
+            this.userOptions.choices.push({ title: 'View past journies', description: 'View your past journies', value: 'viewPastJournies' });
+        }
+        if(this.user.getIsAdmin()) {
+            this.userOptions.choices.push({ title: 'Add new car', description: 'Add a new car to the pool', value: 'addCar' });
+            this.admin = new Admin(this.user.getId(), this.user.getUsername(), this.user.getPassword(), true);
+        }
+        this.userOptions.choices.push({ title: 'Exit', description: 'Exit the application', value: 'exit' });
+    }
+
+    private async confirmBooking(): Promise<boolean> {
+        const response = await prompts({
+            type: 'select',
+            name: 'value',
+            message: 'Please confirm, that you want to book this journey.',
+            choices: [
+                { title: 'Confirm', description: 'Yes, I would like to book the journey', value: true },
+                { title: 'Decline', description: 'No, I don\'t want to book the journey', value: false }
+            ]
+        });
+        return response.value;
     }
 }
