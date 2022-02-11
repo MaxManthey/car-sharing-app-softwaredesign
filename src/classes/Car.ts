@@ -49,7 +49,6 @@ export class Car {
 
     public providedDateTimeMatch(hour: number, minute: number, duration: number): boolean {
         if(duration > this.maxUseTime) {
-            console.log('The provided duration was too long.')
             return false;
         }
 
@@ -57,18 +56,15 @@ export class Car {
         const latestTimeArr = this.latestUseTime.split(':').map(time => parseInt(time));
         
         if(earliestTimeArr[0] > hour || (earliestTimeArr[0] == hour && earliestTimeArr[1] > minute)) {
-            console.log('The provided starting time was below the minimum')
             return false;
         }
 
         const updatedTime: any = this.addDurationToTime(hour, minute, duration);
         if(updatedTime.hour > 23) {
-            console.log('The provided duration was too long.')
             return false;
         }
 
         if(latestTimeArr[0] < updatedTime.hour || (latestTimeArr[0] == updatedTime.hour && latestTimeArr[1] < updatedTime.minute)) {
-            console.log('The provided duration was too long.')
             return false;
         }
 
@@ -96,7 +92,6 @@ export class Car {
             const journeyUpdatedTime: any = this.addDurationToTime(journeyHour, journeyMinute, duration);
             const journeyMaxDate = Date.parse(new Date(journeyDate.getFullYear(), journeyDate.getMonth(), journeyDate.getDate(), journeyUpdatedTime.hour, journeyUpdatedTime.minute).toISOString());
             if((journeyMinDate <= chosenMinDate && journeyMaxDate >= chosenMinDate) || (journeyMinDate <= chosenMaxDate && journeyMaxDate >= chosenMaxDate)) {
-                console.log('Sorry but someone else has booked that car at your preferred timeslot.')
                 return false;
             }
         }

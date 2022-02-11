@@ -126,7 +126,6 @@ export class Controll {
                     return;
                 }
             } else {
-                //TODO check if car is available
                 const chosenCar = availableCars[chosenCarNum-1];
                 const dateTime: Date = new Date(bookingPreferences.date);
                 const date: Date = new Date(dateTime.getFullYear(), dateTime.getMonth(), dateTime.getDate());
@@ -136,6 +135,8 @@ export class Controll {
                 const carTimeOk = chosenCar.providedDateTimeMatch(dateTime.getHours(), dateTime.getMinutes(), useTime);
                 const carNotBookedYet = await chosenCar.carNotBookedYet(date, dateTime.getHours(), dateTime.getMinutes(), useTime);
                 if(!carTimeOk || !carNotBookedYet) {
+                    const message = !carTimeOk ? 'The provided details didn\'t match the cars requirements, please try again' : 'The car has already been booked, sorry about that!';
+                    console.log(message);
                     return;
                 }
                 
@@ -177,8 +178,77 @@ export class Controll {
         }
     }
     
-    private async viewFilteredCars() {
-        console.log('in filtered cars')
-        //TODO Filter for type of drive
-    } //TODO add params and implement
+    private async viewFilteredCars(): Promise<void> {
+        const bookingPreferences: any = await this.setBookingPreferences();
+        if(Object.keys(bookingPreferences).length != 2) {
+            console.log('Can\'t be undefined.');
+            return;
+        }
+
+        const response = await prompts({
+            type: 'select',
+            name: 'driveType',
+            message: 'What type of drive do you prefer?',
+            choices: [
+                { title: 'Gas', description: 'Filter for gas cars', value: 'Gas' },
+                { title: 'Electric', description: 'Filter for electric cars', value: 'Electric'},
+                { title: 'I don\'t care', description: 'Filter for electric and gas cars', value: 'none' }
+            ]
+        });
+        const driveType = response.driveType;
+        if(driveType == undefined) {
+            console.log('Can\'t be undefined.');
+            return;
+        }
+
+        const filteredCars: any = await globalDatabase.filterCarsByDriveAndDuration(driveType, bookingPreferences.useTime);
+        const dateTime: Date = new Date(bookingPreferences.date);
+        const date: Date = new Date(dateTime.getFullYear(), dateTime.getMonth(), dateTime.getDate());
+        const useTime: number = bookingPreferences.useTime;
+
+        let availableCars: Car[] = []
+
+        for(const car of filteredCars) {
+            const currentCar = new Car(car._id, car.drive, car.description, car.earliestUseTime, car.latestUseTime, car.maxUseTime, car.flatFee, car.pricePerMinute);
+            const carTimeOk = currentCar.providedDateTimeMatch(dateTime.getHours(), dateTime.getMinutes(), useTime);
+            const carNotBookedYet = await currentCar.carNotBookedYet(date, dateTime.getHours(), dateTime.getMinutes(), useTime);
+            if(carTimeOk && carNotBookedYet) {
+                availableCars.push(currentCar);
+            }
+        }
+
+        if(availableCars.length == 0) {
+            console.log('There are no available cars, that match your booking preference. Sorry about that!');
+            return;
+        }
+
+        let carCounter = 0
+        for(const car of availableCars) {
+            console.log('--', ++carCounter, '--');
+            car.displayInformation();
+            console.log('-> Total amount to pay: \t', car.getFlatFee() + car.getPricePerMinute() * useTime);
+            console.log();
+        }
+        console.log('--', ++carCounter, '--');
+        console.log('EXIT\n');
+
+        const carToBookChoice = await prompts({
+            type: 'number',
+            name: 'chosenCar',
+            message: 'Please choose an option',
+            validate: chosenCar => (chosenCar < 0 || chosenCar > carCounter) ? `Must be > 0 and <= ${carCounter}` : true
+        });
+        const chosenCarNum = carToBookChoice.chosenCar;
+        
+        if(chosenCarNum == undefined || chosenCarNum == carCounter) {
+            console.log('No car has been booked.')
+            return;
+        }
+        
+        const chosenCar = availableCars[chosenCarNum-1];
+        const hours = dateTime.getHours() < 10 ? '0'+dateTime.getHours().toString() : dateTime.getHours().toString();
+        const minutes = dateTime.getMinutes() < 10 ? '0'+dateTime.getMinutes().toString() : dateTime.getMinutes().toString();
+        await this.user.bookJourney(chosenCar.getId(), chosenCar.getDescription(), date, hours+':'+minutes, useTime, chosenCar.getFlatFee() + chosenCar.getPricePerMinute() * useTime);
+        console.log('Your journey has been booked successfully!');
+    }
 }

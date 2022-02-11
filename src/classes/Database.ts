@@ -89,4 +89,14 @@ export class Database {
     public async getTenCarsToDisplay(): Promise<object[]> {
         return await this.carsCollection.aggregate([{$sample: {size: 10}}]).toArray();
     }
+
+    public async filterCarsByDriveAndDuration(drive: string, duration: number): Promise<object[]> {
+        if(drive == 'none') {
+            return await this.carsCollection.find({ "maxUseTime": { "$gte": duration } }).toArray();
+        }
+        return await this.carsCollection.find({ 
+            "drive": drive,
+            "maxUseTime": { "$gte": duration }
+        }).toArray();
+    }
 }

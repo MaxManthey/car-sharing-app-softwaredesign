@@ -13,9 +13,17 @@ export class Main {
             console.log('Error trying to connect to the Database. \nThe application will be stopped.');
             return;
         }
-        //TODO ASCII art
+        const enterImage = `
+        _______
+       //  ||\\ \\
+ _____//___||_\\ \\___
+ )  _          _    \\
+ |_/ \\________/ \\___|
+___\\_/________\\_/______
+`;
+        console.log(enterImage)
 
-        console.log('\nWelcome to CarShare!\n\n');
+        console.log('Welcome to CarShare!\n\n');
         const response = await prompts({
             type: 'select',
             name: 'value',
@@ -53,8 +61,17 @@ export class Main {
         }
 
         await globalDatabase.disconnect();
-        //TODO ASCII art
-        console.log('\n\nThank you for using CarShare!');
+        
+        const exitImage = `
+  ___
+    _-_-  _/\\______\\\\__
+ _-_-__  / ,-. -|-  ,-.\`-.
+    _-_- \`( o )----( o )-'
+           \`-'      \`-'
+`;
+        console.log(exitImage);
+
+        console.log('Thank you for using CarShare!');
         console.log('We hope to see you again soon!');
     }
 }
