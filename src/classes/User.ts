@@ -22,6 +22,8 @@ export class User {
 
     public getIsAdmin(): boolean { return this.isAdmin; }
 
+    public isNull(): boolean { return false; }
+
     public async bookJourney(carId: ObjectId, description: string, dateStart: Date, timeStart: string, duration: number, costAmount: number): Promise<void> {
         await globalDatabase.insertNewJourney(this._id, carId, description, dateStart, timeStart, duration, costAmount);
     }

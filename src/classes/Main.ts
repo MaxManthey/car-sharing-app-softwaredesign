@@ -4,9 +4,18 @@ import { UserManagement } from "./UserManagement";
 import { Controll } from "./Controll";
 import { User } from "./User";
 import { Database } from "./Database";
+import { NullUser } from "./NullUser";
 
 export let globalDatabase: Database = new Database();
 export class Main {
+    private static instance: Main = new Main();
+
+    private constructor() {}
+
+    public static getInstance() {
+        return this.instance;
+    }
+
     public async main(): Promise<void> {
         const dbConnectionSuccessfull = await globalDatabase.connect();
         if(!dbConnectionSuccessfull) {
@@ -58,7 +67,7 @@ ___\\_/________\\_/______
                     console.log("Login has been stopped");
                 }
             } else if(userChoice === 'viewCars') {
-                const controll = new Controll(new User(new Mongo.ObjectId(), "", "", false));
+                const controll = new Controll(new NullUser(new Mongo.ObjectId(), "", "", false));
                 await controll.startControll();
             } else {
                 break;
@@ -80,7 +89,3 @@ ___\\_/________\\_/______
         console.log('We hope to see you again soon!');
     }
 }
-//TODO implement Design Pattern 1
-//TODO implement Design Pattern 2
-//TODO implement Test
-//TODO run linter
