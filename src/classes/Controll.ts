@@ -20,7 +20,7 @@ export class Controll {
 
         this.setUserOptions()
 
-        let continueLoop: boolean = true;
+        let continueLoop = true;
         while(continueLoop) {
             continueLoop = await this.displayUserOptions();
         }
@@ -60,8 +60,8 @@ export class Controll {
 
     private async viewCars(): Promise<void> {
         const carsFromDB: any = await globalDatabase.getTenCarsToDisplay()
-        let availableCars: Car[] = [];
-        let carCounter: number = 0;
+        const availableCars: Car[] = [];
+        let carCounter = 0;
 
         console.log('Chose wisely...');
         for(const car of carsFromDB) {
@@ -198,7 +198,7 @@ export class Controll {
         const date: Date = new Date(dateTime.getFullYear(), dateTime.getMonth(), dateTime.getDate());
         const useTime: number = bookingPreferences.useTime;
 
-        let availableCars: Car[] = []
+        const availableCars: Car[] = []
 
         for(const car of filteredCars) {
             const currentCar = new Car(car._id, car.drive, car.description, car.earliestUseTime, car.latestUseTime, car.maxUseTime, car.flatFee, car.pricePerMinute);

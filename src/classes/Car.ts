@@ -99,7 +99,7 @@ export class Car {
         return true;
     }
 
-    private addDurationToTime(hour, minute, duration): object {
+    public addDurationToTime(hour: number, minute: number, duration: number): object {
         if(duration > 59) {
             minute += duration % 60;
             duration -= duration % 60;

@@ -6,7 +6,7 @@ import { User } from "./User";
 import { Database } from "./Database";
 import { NullUser } from "./NullUser";
 
-export let globalDatabase: Database = new Database();
+export const globalDatabase: Database = new Database();
 export class Main {
     private static instance: Main = new Main();
 
