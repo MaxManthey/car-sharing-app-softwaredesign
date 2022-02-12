@@ -1,4 +1,4 @@
-# Car-Sharing-App Kurs Softwaredesign
+# Car-Sharing-App
 This is a command line app, implementing a car sharing application, for my Softwaredesign course.  
 The project is written in TypeScript and uses a MongoDB Database, hosted on the MongoDB Cloud.
 
