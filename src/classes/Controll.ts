@@ -5,6 +5,7 @@ import { ObjectId } from "mongodb";
 import { Admin } from "./Admin";
 import { Car } from "./Car";
 import { UserManagement } from "./UserManagement";
+import { NullUser } from "./NullUser";
 
 export class Controll {
   private user: User;
@@ -148,7 +149,7 @@ export class Controll {
 
         if (this.user.isNull()) {
           this.user = await this.promptUserToRegisterOrLogin();
-          if (this.user.getUsername().length > 0 ? false : true) {
+          if (this.user.isNull()) {
             return;
           }
           this.setUserOptions();
@@ -321,7 +322,7 @@ export class Controll {
 
     if (this.user.isNull()) {
       this.user = await this.promptUserToRegisterOrLogin();
-      if (this.user.getUsername().length > 0 ? false : true) {
+      if (this.user.isNull()) {
         return;
       }
       this.setUserOptions();
@@ -375,7 +376,7 @@ export class Controll {
 
     if (userChoice == "exit" || userChoice == undefined) {
       console.log("Sorry but you need an account to proceed.");
-      return new User(new ObjectId(), "", "", false);
+      return new NullUser(new ObjectId(), "", "", false);
     }
 
     const userManagement = new UserManagement();
@@ -402,7 +403,7 @@ export class Controll {
       }
     }
     console.log("Sorry but you need an account to proceed.");
-    return new User(new ObjectId(), "", "", false);
+    return new NullUser(new ObjectId(), "", "", false);
   }
 
   private setUserOptions(): void {
